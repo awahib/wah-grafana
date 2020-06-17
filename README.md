@@ -1,0 +1,2 @@
+# wah-grafana
+grafana install
