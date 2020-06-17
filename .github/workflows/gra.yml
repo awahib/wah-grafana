@@ -1,0 +1,59 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: centos 8
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: actions/checkout@v2
+
+    # Runs a single command using the runners shell
+    #- name: Run a one-line script
+    #  run: echo Hello, world!
+
+    # Runs a set of commands using the runners shell
+    - name: Run a multi-line script
+      run: |
+        
+        #!/bin/bash
+#echo 'https://https://packages.grafana.com/oss/rpm' >> /etc/yum.repos.d/
+#curl https://packages.grafana.com/gpg.key | sudo apt-key add -
+#sudo apt-get update
+#sudo apt-get -y install grafana
+
+cat <<EOF | sudo tee /etc/yum.repos.d/grafana.repo
+[grafana]
+name=grafana
+baseurl=https://packages.grafana.com/oss/rpm
+repo_gpgcheck=1
+enabled=1
+gpgcheck=1
+gpgkey=https://packages.grafana.com/gpg.key
+sslverify=1
+sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+EOF
+
+yum makecache
+yum -y install grafana
+systemctl enable --now grafana-server.service
+firewall-cmd --add-port=3000/tcp --permanent
+firewall-cmd --reload
+
+systemctl daemon-reload
+systemctl start grafana-server
+systemctl enable grafana-server.service
